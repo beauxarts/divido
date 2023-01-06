@@ -51,18 +51,18 @@ func (td TextDocument) ExportMetadata(title, author string) string {
 	sb := strings.Builder{}
 
 	//https://ffmpeg.org/ffmpeg-all.html#Metadata-1
-	sb.WriteString(";FFMETADATA1")
+	sb.WriteString(";FFMETADATA1\n")
 	if title != "" {
-		sb.WriteString("title=" + title)
+		sb.WriteString("title=" + title + "\n")
 	}
 	if author != "" {
-		sb.WriteString("artist=" + author)
+		sb.WriteString("artist=" + author + "\n")
 	}
 	sb.WriteString("\n")
 
 	for _, ct := range td.ChapterTitles() {
-		sb.WriteString("[CHAPTER]")
-		sb.WriteString("title=" + ct)
+		sb.WriteString("[CHAPTER]\n")
+		sb.WriteString("title=" + ct + "\n")
 	}
 
 	return sb.String()
