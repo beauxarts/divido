@@ -7,7 +7,14 @@ import (
 )
 
 const (
-	significantBreaksInRow = 3
+	significantBreaksInRow       = 3
+	MetadataHeader               = ";FFMETADATA1"
+	MetadataChapterSection       = "[CHAPTER]"
+	MetadataTitlePrefix          = "title="
+	MetadataArtistPrefix         = "artist="
+	MetadataTimebaseDefaultValue = "TIMEBASE=1/1000"
+	MetadataStartPrefix          = "START="
+	MetadataEndPrefix            = "END="
 )
 
 type TextDocument []TextElement
@@ -51,18 +58,18 @@ func (td TextDocument) ExportMetadata(title, author string) string {
 	sb := strings.Builder{}
 
 	//https://ffmpeg.org/ffmpeg-all.html#Metadata-1
-	sb.WriteString(";FFMETADATA1\n")
+	sb.WriteString(MetadataHeader + "\n")
 	if title != "" {
-		sb.WriteString("title=" + title + "\n")
+		sb.WriteString(MetadataTitlePrefix + title + "\n")
 	}
 	if author != "" {
-		sb.WriteString("artist=" + author + "\n")
+		sb.WriteString(MetadataArtistPrefix + author + "\n")
 	}
 	sb.WriteString("\n")
 
 	for _, ct := range td.ChapterTitles() {
-		sb.WriteString("[CHAPTER]\n")
-		sb.WriteString("title=" + ct + "\n")
+		sb.WriteString(MetadataChapterSection + "\n")
+		sb.WriteString(MetadataTitlePrefix + ct + "\n")
 	}
 
 	return sb.String()
