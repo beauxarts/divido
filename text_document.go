@@ -3,18 +3,10 @@ package divido
 import (
 	"bufio"
 	"io"
-	"strings"
 )
 
 const (
-	significantBreaksInRow       = 3
-	MetadataHeader               = ";FFMETADATA1"
-	MetadataChapterSection       = "[CHAPTER]"
-	MetadataTitlePrefix          = "title="
-	MetadataArtistPrefix         = "artist="
-	MetadataTimebaseDefaultValue = "TIMEBASE=1/1000"
-	MetadataStartPrefix          = "START="
-	MetadataEndPrefix            = "END="
+	significantBreaksInRow = 3
 )
 
 type TextDocument []TextElement
@@ -52,27 +44,6 @@ func (td TextDocument) ChapterParagraphs(chapterTitle string) []TextParagraph {
 		}
 	}
 	return paragraphs
-}
-
-func (td TextDocument) ExportMetadata(title, author string) string {
-	sb := strings.Builder{}
-
-	//https://ffmpeg.org/ffmpeg-all.html#Metadata-1
-	sb.WriteString(MetadataHeader + "\n")
-	if title != "" {
-		sb.WriteString(MetadataTitlePrefix + title + "\n")
-	}
-	if author != "" {
-		sb.WriteString(MetadataArtistPrefix + author + "\n")
-	}
-	sb.WriteString("\n")
-
-	for _, ct := range td.ChapterTitles() {
-		sb.WriteString(MetadataChapterSection + "\n")
-		sb.WriteString(MetadataTitlePrefix + ct + "\n")
-	}
-
-	return sb.String()
 }
 
 func NewTextDocument(reader io.Reader) TextDocument {
