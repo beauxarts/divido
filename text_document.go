@@ -3,6 +3,7 @@ package divido
 import (
 	"bufio"
 	"io"
+	"strings"
 )
 
 const (
@@ -11,9 +12,9 @@ const (
 
 type TextDocument []TextElement
 
-func (tcs TextDocument) ChapterTitles() []string {
-	chapters := make([]string, 0, len(tcs)/2)
-	for _, tc := range tcs {
+func (td TextDocument) ChapterTitles() []string {
+	chapters := make([]string, 0, len(td)/2)
+	for _, tc := range td {
 		if tc.Type == ChapterTitle {
 			for _, p := range tc.Content {
 				chapters = append(chapters, p.String())
@@ -23,10 +24,10 @@ func (tcs TextDocument) ChapterTitles() []string {
 	return chapters
 }
 
-func (tcs TextDocument) ChapterParagraphs(chapterTitle string) []TextParagraph {
+func (td TextDocument) ChapterParagraphs(chapterTitle string) []TextParagraph {
 	paragraphs := make([]TextParagraph, 0)
 	accumulate := false
-	for _, tc := range tcs {
+	for _, tc := range td {
 		if tc.Type == Break {
 			continue
 		}
@@ -44,6 +45,27 @@ func (tcs TextDocument) ChapterParagraphs(chapterTitle string) []TextParagraph {
 		}
 	}
 	return paragraphs
+}
+
+func (td TextDocument) ExportMetadata(title, author string) string {
+	sb := strings.Builder{}
+
+	//https://ffmpeg.org/ffmpeg-all.html#Metadata-1
+	sb.WriteString(";FFMETADATA1")
+	if title != "" {
+		sb.WriteString("title=" + title)
+	}
+	if author != "" {
+		sb.WriteString("artist=" + author)
+	}
+	sb.WriteString("\n")
+
+	for _, ct := range td.ChapterTitles() {
+		sb.WriteString("[CHAPTER]")
+		sb.WriteString("title=" + ct)
+	}
+
+	return sb.String()
 }
 
 func NewTextDocument(reader io.Reader) TextDocument {
