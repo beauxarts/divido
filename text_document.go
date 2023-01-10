@@ -2,11 +2,15 @@ package divido
 
 import (
 	"bufio"
+	"fmt"
 	"io"
+	"path/filepath"
+	"strings"
 )
 
 const (
 	significantBreaksInRow = 3
+	notesSuffix            = "_notes"
 )
 
 type TextDocument []TextElement
@@ -44,6 +48,28 @@ func (td TextDocument) ChapterParagraphs(chapterTitle string) []TextParagraph {
 		}
 	}
 	return paragraphs
+}
+
+func (td TextDocument) ReplaceFrom(start int, old, new string) int {
+
+	if start >= len(td) {
+		return -1
+	}
+
+	for ii := start; ii < len(td); ii++ {
+		n := td[ii]
+		if n.Type != Paragraph {
+			continue
+		}
+		for pi, p := range n.Content {
+			if strings.Contains(p.String(), old) {
+				n.Content[pi] = TextParagraph(strings.Replace(p.String(), old, new, 1))
+				return ii
+			}
+		}
+	}
+
+	return -1
 }
 
 func NewTextDocument(reader io.Reader) TextDocument {
@@ -94,4 +120,49 @@ func NewTextDocument(reader io.Reader) TextDocument {
 	}
 
 	return td
+}
+
+func NewTextDocumentWithNotes(document io.Reader, notes io.Reader) TextDocument {
+
+	td := NewTextDocument(document)
+	nt := NewTextDocument(notes)
+
+	previousType := Break
+
+	// reformat nodes to have ChapterTitle, then Paragraph pattern
+	for ii, tc := range nt {
+		if tc.Type == ChapterTitle {
+			if previousType == ChapterTitle {
+				nt[ii].Type = Paragraph
+				previousType = Paragraph
+			} else {
+				previousType = ChapterTitle
+			}
+		}
+	}
+
+	noteTitles := nt.ChapterTitles()
+	if len(noteTitles) == 0 {
+		return td
+	}
+
+	lastIndex := 0
+
+	for _, ni := range nt.ChapterTitles() {
+		noteIndex := fmt.Sprintf("[%s]", ni)
+		for _, nc := range nt.ChapterParagraphs(ni) {
+			noteText := fmt.Sprintf(" (%s)", nc.String())
+			if lastIndex = td.ReplaceFrom(lastIndex, noteIndex, noteText); lastIndex < 0 {
+				break
+			}
+		}
+	}
+
+	return td
+}
+
+func DefaultNotesFilename(filename string) string {
+	ext := filepath.Ext(filename)
+	filenameSansExt := strings.TrimSuffix(filename, ext)
+	return filenameSansExt + notesSuffix + ext
 }
