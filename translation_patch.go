@@ -1,9 +1,9 @@
 package divido
 
 import (
-	"golang.org/x/exp/maps"
 	"io"
-	"sort"
+	"maps"
+	"slices"
 	"strings"
 )
 
@@ -53,9 +53,9 @@ func (tp *translationPatch) SourceContent() []string {
 	content := make([]string, 0, len(tp.contentDecorations))
 
 	order := maps.Keys(tp.contentDecorations)
-	sort.Ints(order)
+	sortedOrder := slices.Sorted(order)
 
-	for _, li := range order {
+	for _, li := range sortedOrder {
 		xd := tp.contentDecorations[li]
 		if xd.prefix == -1 {
 			continue
